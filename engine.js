@@ -24,8 +24,6 @@
       "39": [50,0]   // right
     },
 
-    players: [],
-
     init: function(){
       this.__connectWebSocket();
       this.__buildCanvas();
@@ -69,7 +67,7 @@
 
     __movePlayer: function(data){
       if( data._id === this._id ) return;
-      if( this.player_ids.indexOf(this._id) ) this.__buildPlayer(data);
+      if( this.player_ids.indexOf(data._id) < 0 ) this.__buildPlayer(data);
       this.players[data._id].dot.animate(
         {"cx": data.x, "cy": data.y},
         100,
