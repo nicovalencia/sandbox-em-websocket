@@ -50,9 +50,9 @@
       this.player.x = x;
       this.player.y = y;
       this.ws.send(JSON.stringify({
-        "_id": this._id,
-        "x": x,
-        "y": y
+        _id: this._id,
+        x: x,
+        y: y
       }));
     },
 
@@ -89,6 +89,7 @@
     },
 
     message: function(e){
+      console.log('message',e)
       app.__movePlayer(JSON.parse(e.data));
     },
 
