@@ -9,12 +9,17 @@
     ws: null,
     player_ids: [],
     players: {},
+    player: {
+      x: 250,
+      y: 250
+    },
 
     config: {
+      player_width: 10,
       width: 500,
       height: 500,
       x:100,
-      y:100
+      y:150
     },
 
     keymap: {
@@ -27,7 +32,6 @@
     init: function(){
       this.__connectWebSocket();
       this.__buildCanvas();
-      this.__buildDot();
     },
 
     __connectWebSocket: function(){
@@ -42,31 +46,17 @@
       this.canvas = Raphael(this.config.x, this.config.y, this.config.width, this.config.height);
     },
 
-    __buildDot: function(){
-      this.dot = this.canvas.circle(this.config.width/2, this.config.height/2, 10);
-      this.dot.attr("fill", "#0099ff");
-      this.dot.attr("stroke", "#000");
-    },
-
     __publishDot: function(x,y){
+      this.player.x = x;
+      this.player.y = y;
       this.ws.send(JSON.stringify({
         "_id": this._id,
-        "x": this.dot.attrs.cx + x,
-        "y": this.dot.attrs.cy + y
+        "x": x,
+        "y": y
       }));
     },
 
-    __moveDot: function(x,y){
-      this.dot.animate(
-        {"cx": this.dot.attrs.cx + x, "cy": this.dot.attrs.cy + y},
-        100,
-        "easeInOut",
-        function(){}
-      );
-    },
-
     __movePlayer: function(data){
-      if( data._id === this._id ) return;
       if( this.player_ids.indexOf(data._id) < 0 ) this.__buildPlayer(data);
       this.players[data._id].dot.animate(
         {"cx": data.x, "cy": data.y},
@@ -81,10 +71,21 @@
       this.players[data._id] = {
         x: data.x,
         y: data.y,
-        dot: this.canvas.circle(data.x, data.y, 10)
+        dot: this.canvas.circle(data.x, data.y, this.config.player_width)
       };
       this.players[data._id].dot.attr("fill", helpers.getRGBA());
       this.players[data._id].dot.attr("stroke", "#000");
+    },
+
+    __getNewCoords: function(x,y){
+      return [this.player.x + x, this.player.y + y];
+    },
+
+    __detectCollision: function(x,y){
+      // edges of canvas
+      var po = this.config.player_width;
+      if( x < po || x > this.config.width - po || y < po || y > this.config.height - po ) return true;
+      return false;
     },
 
     message: function(e){
@@ -94,9 +95,9 @@
     keydown: function(e){
       if( !app.keymap.hasOwnProperty(e.keyCode) ) return;
       e.preventDefault();
-      var new_coords = app.keymap[e.keyCode];
+      var new_coords = app.__getNewCoords.apply(app, app.keymap[e.keyCode]);
+      if( app.__detectCollision.apply(app, new_coords) ) return false;
       app.__publishDot.apply(app, new_coords);
-      app.__moveDot.apply(app, new_coords);
     }
 
   };
