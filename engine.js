@@ -83,7 +83,7 @@
         y: data.y,
         dot: this.canvas.circle(data.x, data.y, 10)
       };
-      this.players[data._id].dot.attr("fill", "#ff0000");
+      this.players[data._id].dot.attr("fill", helpers.getRGBA());
       this.players[data._id].dot.attr("stroke", "#000");
     },
 
