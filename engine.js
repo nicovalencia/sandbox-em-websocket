@@ -5,7 +5,10 @@
   app = {
 
     _id: new Date().getTime(),
+
     ws: null,
+    player_ids: [],
+    players: {},
 
     config: {
       width: 500,
@@ -34,11 +37,7 @@
       this.ws.onopen = function(e){ console.log('open',e); };
       this.ws.onclose = function(e){ console.log('close',e); };
       this.ws.onerror = function(e){ console.log('error',e); };
-      this.ws.onmessage = this.__message;
-    },
-
-    __message: function(e){
-      console.log('message',e);
+      this.ws.onmessage = this.message;
     },
 
     __buildCanvas: function(){
@@ -51,11 +50,11 @@
       this.dot.attr("stroke", "#000");
     },
 
-    __publishDot: function(){
+    __publishDot: function(x,y){
       this.ws.send(JSON.stringify({
         "_id": this._id,
-        "x": this.dot.attrs.cx,
-        "y": this.dot.attrs.cy
+        "x": this.dot.attrs.cx + x,
+        "y": this.dot.attrs.cy + y
       }));
     },
 
@@ -68,11 +67,38 @@
       );
     },
 
+    __movePlayer: function(data){
+      if( data._id === this._id ) return;
+      if( this.player_ids.indexOf(this._id) ) this.__buildPlayer(data);
+      this.players[data._id].dot.animate(
+        {"cx": data.x, "cy": data.y},
+        100,
+        "easeInOut",
+        function(){}
+      );
+    },
+
+    __buildPlayer: function(data){
+      this.player_ids.push(data._id);
+      this.players[data._id] = {
+        x: data.x,
+        y: data.y,
+        dot: this.canvas.circle(data.x, data.y, 10)
+      };
+      this.players[data._id].dot.attr("fill", "#ff0000");
+      this.players[data._id].dot.attr("stroke", "#000");
+    },
+
+    message: function(e){
+      app.__movePlayer(JSON.parse(e.data));
+    },
+
     keydown: function(e){
       if( !app.keymap.hasOwnProperty(e.keyCode) ) return;
       e.preventDefault();
-      app.__publishDot();
-      app.__moveDot.apply(app, app.keymap[e.keyCode]);
+      var new_coords = app.keymap[e.keyCode];
+      app.__publishDot.apply(app, new_coords);
+      app.__moveDot.apply(app, new_coords);
     }
 
   };
