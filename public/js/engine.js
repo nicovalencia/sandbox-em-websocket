@@ -1,12 +1,13 @@
 (function(){
 
-  var app;
+  var app = app || {};
 
   app = {
 
     _id: new Date().getTime(),
 
     ws: null,
+    ws_type: "socket-io",
     player_ids: [],
     players: {},
     player: {
@@ -34,14 +35,6 @@
       app.buildCanvas();
     },
 
-    connectWebSocket: function(){
-      app.ws = new WebSocket("ws://0.0.0.0:1337");
-      app.ws.onopen = function(e){ console.log('open',e); };
-      app.ws.onclose = function(e){ console.log('close',e); };
-      app.ws.onerror = function(e){ console.log('error',e); };
-      app.ws.onmessage = app.message;
-    },
-
     buildCanvas: function(){
       app.canvas = Raphael(app.config.x, app.config.y, app.config.width, app.config.height);
     },
@@ -49,7 +42,7 @@
     publishDot: function(x,y){
       app.player.x = x;
       app.player.y = y;
-      app.ws.send(JSON.stringify({
+      app.send(JSON.stringify({
         _id: app._id,
         x: x,
         y: y
@@ -89,7 +82,8 @@
     },
 
     message: function(e){
-      app.movePlayer(JSON.parse(e.data));
+      var data = JSON.parse( typeof e.data !== "undefined" ? e.data : e );
+      app.movePlayer(data);
     },
 
     keydown: function(e){
@@ -101,6 +95,37 @@
     }
 
   };
+
+  // Switch em-websocket / socket-io handlers
+  if( app.ws_type === "em-websocket" ){
+
+    app.connectWebSocket = function(){
+      app.ws = new WebSocket("ws://0.0.0.0:1337");
+      app.ws.onopen = function(e){ console.log('open',e); };
+      app.ws.onclose = function(e){ console.log('close',e); };
+      app.ws.onerror = function(e){ console.log('error',e); };
+      app.ws.onmessage = app.message;
+    };
+
+    app.send = function(msg) {
+      app.ws.send(msg);
+    };
+
+  } else if( app.ws_type === "socket-io" ){
+
+    app.connectWebSocket = function(){
+      app.ws = io.connect('0.0.0.0:1338');
+      app.ws.on('open', function (msg) { console.log('open',e); });
+      app.ws.on('close', function (msg) { console.log('close',e); });
+      app.ws.on('error', function (msg) { console.log('error',e); });
+      app.ws.on('message', function (msg) { app.message(msg); });
+    };
+
+    app.send = function(msg) {
+      app.ws.emit('message', msg);
+    };
+
+  }
 
   window.app = app;
 

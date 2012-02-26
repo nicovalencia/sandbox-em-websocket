@@ -17,3 +17,14 @@ EventMachine WebSocket server (0.0.0.0:1337):
 
     ruby servers/em_websocket.rb
 
+Node WebSocket server (0.0.0.0:1338):
+
+    node servers/node_websocket.js
+
+TODO:
+-----
+
+  - Add package/gemfile eventually.
+  - Add benchmarking server.
+  - Replace Raphael with raw canvas buffer.
+
