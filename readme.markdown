@@ -9,11 +9,11 @@ Raphael JS animates user avatar backed in a redis store.
 Setup
 -----
 
-Run the EventMachine server:
+Static file server (0.0.0.0:9000):
 
-    ruby server.rb
+    ruby servers/static.rb
 
-Open index.html in your browser:
+EventMachine WebSocket server (0.0.0.0:1337):
 
-    open index.html
+    ruby servers/em_websocket.rb
 

@@ -6,6 +6,7 @@ require 'json'
 @sockets = []
 @redis = nil
 
+# SOCKET Server
 EM.run do
 
   # setup redis store
@@ -51,3 +52,4 @@ EM.run do
   end
 
 end
+
